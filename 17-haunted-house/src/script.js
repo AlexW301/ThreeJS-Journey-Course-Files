@@ -256,8 +256,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.setClearColor('#262837')
 
 // Shadows
-renderer.shadowMap = true
-// renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.shadowMap.enabled = true
 
 moonLight.castShadow = true
 doorLight.castShadow = true
@@ -287,6 +286,10 @@ ghost2.shadow.camera.far = 7
 ghost3.shadow.mapSize.width = 256
 ghost3.shadow.mapSize.height = 256
 ghost3.shadow.camera.far = 7
+
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+
+
 /**
  * Animate
  */
