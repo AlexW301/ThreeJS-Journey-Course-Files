@@ -1,6 +1,8 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import * as dat from 'lil-gui'
 
 /**
@@ -14,6 +16,47 @@ const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
+
+/**
+ * MODELS
+ */
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('/draco/')
+
+const gltfLoader = new GLTFLoader()
+gltfLoader.setDRACOLoader(dracoLoader)
+
+let mixer = null
+
+gltfLoader.load(
+    '/models/Fox/glTF/Fox.gltf',
+    (gltf) => {
+        // scene.add(gltf.scene.children[0])
+
+        // while(gltf.scene.children.length)
+        // {
+        //     scene.add(gltf.scene.children[0])
+        // }
+
+        // const children = [...gltf.scene.children]
+        // for(const child of children) {
+        //     scene.add(child)
+        // }
+        mixer = new THREE.AnimationMixer(gltf.scene)
+        const action = mixer.clipAction(gltf.animations[0])
+        console.log(action)
+        action.play()
+
+        gltf.scene.scale.set(0.025, 0.025, 0.025)
+        scene.add(gltf.scene)
+    },
+    () => {
+        console.log('progress')
+    },
+    (error) => {
+        console.log(error)
+    },
+)
 
 /**
  * Floor
@@ -105,6 +148,12 @@ const tick = () =>
     const elapsedTime = clock.getElapsedTime()
     const deltaTime = elapsedTime - previousTime
     previousTime = elapsedTime
+
+    // Update Mixer
+    // if(mixer !== null) {
+    //     mixer.update(deltaTime)
+    // }
+    mixer?.update(deltaTime)
 
     // Update controls
     controls.update()
