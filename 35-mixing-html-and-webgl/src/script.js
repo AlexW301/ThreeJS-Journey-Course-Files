@@ -3,10 +3,12 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { gsap } from 'gsap'
+import { Raycaster } from 'three'
 
 /**
  * Loaders
  */
+let sceneReady = false
 const loadingBarElement = document.querySelector('.loading-bar')
 const loadingManager = new THREE.LoadingManager(
     // Loaded
@@ -22,6 +24,10 @@ const loadingManager = new THREE.LoadingManager(
             loadingBarElement.classList.add('ended')
             loadingBarElement.style.transform = ''
         }, 500)
+
+        window.setTimeout(() => {
+            sceneReady = true
+        }, 2000)
     },
 
     // Progress
@@ -131,15 +137,21 @@ gltfLoader.load(
 /**
  * Points of interest
  */
-
+const raycaster = new Raycaster()
 const points = [
     {
         position: new THREE.Vector3(1.55, 0.3, - 0.6),
         element: document.querySelector('.point-0')
-    }
+    },
+    {
+        position: new THREE.Vector3(0.5, 0.8, - 1.6),
+        element: document.querySelector('.point-1')
+    },
+    {
+        position: new THREE.Vector3(1.6, -1.3, - 0.7),
+        element: document.querySelector('.point-2')
+    },
 ]
-
-console.log(points)
 
 /**
  * Lights
@@ -210,6 +222,38 @@ const tick = () =>
 {
     // Update controls
     controls.update()
+    if(sceneReady)
+    {
+        // Go through each point
+    for(const point of points)
+    {
+        const screenPosition = point.position.clone()
+        screenPosition.project(camera)
+
+        raycaster.setFromCamera(screenPosition, camera)
+        const intersects = raycaster.intersectObjects(scene.children, true)
+        if(intersects.length === 0)
+        {
+            point.element.classList.add('visible')
+        } else
+        {
+            const interestionDistance = intersects[0].distance
+            const pointDistance = point.position.distanceTo(camera.position)
+
+            if(interestionDistance < pointDistance)
+            {
+                point.element.classList.remove('visible')
+            }
+            else{
+                point.element.classList.add('visible')
+            }
+        }
+
+        const translateX = screenPosition.x * sizes.width * 0.5
+        const translateY = - screenPosition.y * sizes.height * 0.5
+        point.element.style.transform = `translateX(${translateX}px) translateY(${translateY}px)`
+    }
+    }
 
     // Render
     renderer.render(scene, camera)
